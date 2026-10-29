@@ -552,6 +552,27 @@ a.ui-chip { display: inline-flex; align-items: center; text-decoration: none; }
 .sp-rapido-play:hover { transform: scale(1.06); }
 .sp-rapido:hover .sp-rapido-play, .sp-rapido-play:focus-visible, .sp-rapido.suena .sp-rapido-play { opacity: 1; }
 @media (hover: none) { .sp-rapido-play { opacity: 1; } }
+/* El DJ: su tarjeta entre los accesos rápidos y su marca, un cuadro morado con «DJ». */
+.sp-dj-abrir { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; padding: 0 54px 0 0; border: 0; background: transparent; color: inherit; text-align: left; font: inherit; cursor: pointer; }
+.sp-dj-abrir:disabled { cursor: progress; }
+.sp-dj-marca {
+  flex: none; display: grid; place-items: center; width: 56px; height: 56px;
+  background: linear-gradient(135deg, var(--acento), color-mix(in srgb, var(--acento) 45%, #12091f));
+  color: #fff; font: 800 1.15rem/1 var(--f-texto); letter-spacing: 0.02em;
+}
+.sp-dj-texto { display: grid; min-width: 0; }
+.sp-dj-texto small { color: var(--tinta-2); font-size: var(--t-xs); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-dj.suena .sp-dj-texto b { color: var(--acento); }
+/* Lo que dice el DJ, sobre la barra del reproductor. */
+.dj-subtitulos {
+  position: fixed; z-index: 31; left: 50%; bottom: calc(var(--tira) + 12px); translate: -50% 0;
+  display: flex; align-items: center; gap: 12px; width: min(640px, calc(100vw - 32px)); padding: 10px 16px 10px 10px;
+  border-radius: 12px; background: var(--hoja); box-shadow: 0 10px 30px -12px rgb(var(--sombra) / 0.6);
+  animation: ui-entrar var(--ui-suave) both;
+}
+.dj-subtitulos .sp-dj-marca { width: 36px; height: 36px; border-radius: 8px; font-size: 0.85rem; }
+.dj-subtitulos p { margin: 0; font-size: var(--t-s); line-height: 1.4; }
+.dialogo-acciones { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
 .sp-fila { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; min-width: 0; }
 .sp-fila > header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .sp-fila h2 { min-width: 0; font: 800 1.5rem/1.2 var(--f-texto); letter-spacing: -0.01em; }

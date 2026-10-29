@@ -8,6 +8,7 @@ import { PanelReproductor } from "./components/PanelReproductor";
 import { VistaLetra } from "./components/VistaLetra";
 import { SelectorLista } from "./components/SelectorLista";
 import { atajoBuscar, BarraSuperior } from "./components/BarraSuperior";
+import { SubtitulosDJ } from "./components/TarjetaDJ";
 
 export default function App() {
   const [soltando, setSoltando] = useState(false);
@@ -71,6 +72,7 @@ export default function App() {
       <PanelReproductor />
       <VistaLetra />
       <SelectorLista />
+      <SubtitulosDJ />
       <Tira />
 
       {aviso ? (

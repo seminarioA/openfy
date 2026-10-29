@@ -25,9 +25,13 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,woff2,png,webp,jpg,mjs,wasm}"],
+        // La voz del DJ (~93 MB) no entra en la instalación: se baja al pedirla (lib/voz-recursos.ts).
+        globIgnores: ["voz/**"],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
       },
     }),
   ],
+  // El worker de la voz importa ONNX Runtime como módulo.
+  worker: { format: "es" },
   test: { environment: "node" },
 });

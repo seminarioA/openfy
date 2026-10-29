@@ -11,6 +11,7 @@ import { enlaceDentro, irDentro, useBusqueda, useParametros } from "../lib/ui";
 import { FilaPista, HistorialMusica, ListaPistas, tocar } from "../components/Pistas";
 import { AccesoRapido, Carrusel, ImagenEntrada, TarjetaEntrada } from "../components/Discos";
 import { BibliotecaMusica, nuevaPlaylist } from "../components/BibliotecaMusica";
+import { TarjetaDJ } from "../components/TarjetaDJ";
 
 export const VERES = [
   { id: "todo", nombre: "Todo" },
@@ -211,9 +212,10 @@ export function MusicaInicio({ datos, alImportar }: { datos: DatosMusica; alImpo
       ) : (
         // Inicio
         <>
-          {recientes.length ? (
+          {pistas.length ? (
             <div className="sp-rapidos">
-              {recientes.map((e) => (
+              <TarjetaDJ datos={datos} />
+              {recientes.slice(0, 7).map((e) => (
                 <AccesoRapido key={`${e.tipo}-${e.id}`} e={e} />
               ))}
             </div>

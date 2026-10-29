@@ -5,3 +5,4 @@ dist/
 # Archivos de prueba locales (audios generados para probar la importación).
 public/prueba/
 *.tsbuildinfo
+public/voz/

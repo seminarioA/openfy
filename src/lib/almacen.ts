@@ -81,6 +81,20 @@ export async function leerArchivo(clave: string, tipo?: string): Promise<Blob | 
   return fila?.blob ?? null;
 }
 
+/** Si el archivo sigue en este dispositivo (sin leerlo: el navegador puede liberar espacio por su cuenta). */
+export async function existeArchivo(clave: string) {
+  const dir = await directorio();
+  if (dir) {
+    try {
+      await dir.getFileHandle(nombreSeguro(clave));
+      return true;
+    } catch {
+      /* puede estar en IndexedDB */
+    }
+  }
+  return !!(await db.archivos.get(clave));
+}
+
 export async function borrarArchivo(clave: string) {
   const dir = await directorio();
   if (dir) await dir.removeEntry(nombreSeguro(clave)).catch(() => {});

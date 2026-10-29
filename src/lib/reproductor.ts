@@ -43,6 +43,8 @@ function leerModos(): Modos {
 let estado: EstadoReproductor = { actual: null, cola: [], indice: -1, fila: [], sonando: false, tiempo: 0, duracion: 0, ...leerModos() };
 /** El contexto en su orden original, para deshacer el aleatorio. */
 let original: Item[] = [];
+/** Factor (0-1) por el que se multiplica tu volumen mientras habla el DJ (ver `atenuar`); tu volumen no cambia. */
+let atenuacion = 1;
 const oyentes = new Set<() => void>();
 let audio: HTMLAudioElement | null = null;
 let ultimoGuardado = 0;
@@ -92,7 +94,7 @@ function elemento() {
       void audio!.play();
     } else void siguiente();
   });
-  audio.volume = estado.volumen;
+  audio.volume = estado.volumen * atenuacion;
   audio.muted = estado.silencio;
   engancharEcualizador(audio);
   return audio;
@@ -174,7 +176,7 @@ export function cambiarRepetir() {
 
 export function cambiarVolumen(volumen: number) {
   const v = Math.max(0, Math.min(1, volumen));
-  elemento().volume = v;
+  elemento().volume = v * atenuacion;
   elemento().muted = v === 0;
   emitir({ volumen: v, silencio: v === 0 });
   guardarModos();
@@ -295,6 +297,42 @@ export function detener() {
   el.pause();
   el.removeAttribute("src");
   emitir({ actual: null, sonando: false, tiempo: 0, duracion: 0 });
+}
+
+// ---------- para el DJ (lib/dj.ts) ----------
+
+let rampa = 0;
+
+/** Baja o sube la música hasta `factor` de tu volumen en `ms`, suave. */
+export function atenuar(factor: number, ms = 400) {
+  const el = elemento();
+  const desde = atenuacion;
+  const inicio = performance.now();
+  cancelAnimationFrame(rampa);
+  const paso = (t: number) => {
+    const k = Math.min(1, (t - inicio) / ms);
+    atenuacion = desde + (factor - desde) * k;
+    el.volume = estado.volumen * atenuacion;
+    if (k < 1) rampa = requestAnimationFrame(paso);
+  };
+  rampa = requestAnimationFrame(paso);
+}
+
+export function estadoReproductor() {
+  return estado;
+}
+
+export function suscribirReproductor(f: () => void) {
+  oyentes.add(f);
+  return () => {
+    oyentes.delete(f);
+  };
+}
+
+/** Añade pistas al final del contexto que suena (sin tocar lo que suena ni tu fila). */
+export function extenderCola(items: Item[]) {
+  original = [...original, ...items];
+  emitir({ cola: [...estado.cola, ...items] });
 }
 
 export function useReproductor() {
