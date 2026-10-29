@@ -22,7 +22,7 @@ import {
 import { alternar, alternarAleatorio, alternarSilencio, anterior, cambiarRepetir, cambiarVolumen, detener, irA, siguiente, useReproductor } from "../lib/reproductor";
 import { claveAlbum, datosMusica } from "../lib/musica";
 import { duracion } from "../lib/formato";
-import { useLetraDe } from "../lib/letras";
+import { pedirLetra, useLetraDe } from "../lib/letras";
 import { abrirLetra, abrirPanel, cerrarLetra, cerrarPanel, irDentro, useLetra, usePanel, type PestanaPanel } from "../lib/ui";
 import { Miniatura } from "./Portada";
 import { EnlacesArtistas } from "./Pistas";
@@ -112,12 +112,18 @@ export function Tira() {
 
       <div className="tira-derecha">
         <button
-          className={`tira-boton${letra ? " activo" : ""}`}
-          onClick={() => (letra ? cerrarLetra() : abrirLetra())}
-          disabled={!letra && estadoLetra?.estado !== "lista"}
+          className={`tira-boton${letra ? " activo" : ""}${estadoLetra?.estado === "buscando" ? " buscando" : ""}`}
+          onClick={() => {
+            if (letra) return cerrarLetra();
+            // Si falló (p. ej. sin conexión), pulsar la vuelve a buscar ya.
+            if (estadoLetra?.estado === "error") void pedirLetra(item, true);
+            abrirLetra();
+          }}
+          // Mientras se busca se puede abrir: la vista muestra «Buscando la letra…» y luego la letra.
+          disabled={!letra && (!estadoLetra || estadoLetra.estado === "ninguna")}
           aria-pressed={!!letra}
           aria-label="Letra"
-          title={estadoLetra?.estado === "lista" ? "Letra" : estadoLetra?.estado === "buscando" ? "Buscando la letra…" : estadoLetra?.estado === "error" ? "La letra no está disponible ahora" : "Esta canción no tiene letra"}
+          title={estadoLetra?.estado === "lista" ? "Letra" : estadoLetra?.estado === "buscando" ? "Buscando la letra…" : estadoLetra?.estado === "error" ? "La letra no está disponible ahora. Pulsa para reintentar" : "Esta canción no tiene letra"}
         >
           <MicVocal size={18} />
         </button>

@@ -330,6 +330,9 @@ img { max-width: 100%; }
 /* Un punto bajo el modo activo, como en Spotify. */
 .tira-boton.activo::after, .tira-boton[aria-pressed="true"]::after { content: ""; position: absolute; bottom: 1px; width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
 .tira-boton.grande { width: 48px; height: 48px; }
+/* Buscando la letra: el icono late suave hasta que llega (o se sabe que no hay). */
+.tira-boton.buscando svg { animation: latir 1.2s ease-in-out infinite; }
+@keyframes latir { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
 .tira-play {
   display: grid; place-items: center; width: 36px; height: 36px; padding-left: 1px;
   border: 0; border-radius: 50%; background: var(--tinta); color: var(--mesa); cursor: pointer;
