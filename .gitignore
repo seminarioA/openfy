@@ -1,0 +1,7 @@
+node_modules/
+dist/
+*.log
+.DS_Store
+# Archivos de prueba locales (audios generados para probar la importación).
+public/prueba/
+*.tsbuildinfo

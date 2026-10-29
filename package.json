@@ -1,0 +1,40 @@
+{
+  "name": "openfy",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Un reproductor de música local, inspirado en Spotify: tu biblioteca se queda en tu dispositivo.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host",
+    "test": "vitest run",
+    "typecheck": "tsc -b",
+    "icono": "node scripts/generar-icono.mjs"
+  },
+  "dependencies": {
+    "@fontsource/atkinson-hyperlegible": "^5.3.0",
+    "@fontsource/courier-prime": "^5.3.0",
+    "@fontsource/young-serif": "^5.3.0",
+    "dexie": "4.2.0",
+    "dexie-react-hooks": "^4.2.0",
+    "fflate": "^0.8.3",
+    "lucide-react": "0.544.0",
+    "music-metadata": "^12.2.2",
+    "node-unrar-js": "2.0.2",
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.1.13",
+    "@types/react-dom": "19.1.9",
+    "@vitejs/plugin-react": "5.0.4",
+    "lucide-static": "^0.544.0",
+    "sharp": "^0.34.4",
+    "typescript": "5.9.3",
+    "vite": "7.1.7",
+    "vite-plugin-pwa": "1.0.3",
+    "vitest": "3.2.4"
+  }
+}

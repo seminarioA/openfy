@@ -1,0 +1,890 @@
+/* Openfy — tu música en tu dispositivo.
+   Layout como Spotify: tu biblioteca a la izquierda, la vista en el centro, el
+   panel del reproductor acoplado a la derecha y la barra del reproductor abajo. */
+:root {
+  --mesa: #ebe8f0;
+  --hoja: #faf9fc;
+  --hoja-2: #f3f0f7;
+  --manila: #e6dcf7;
+  --manila-tinta: #4b2a80;
+  --tinta: #2a1f44;
+  --tinta-2: #625979;
+  --tinta-3: #908aa3;
+  --acento: #6d3fc0;
+  --acento-suave: #ece4f8;
+  --sello: #a83a2c;
+  --sello-suave: #f3dfda;
+  --bien: #2f6b45;
+  --regla: #d5cde2;
+  --regla-roja: #d9a29a;
+  --sombra: 42 31 68;
+  --grano-opacidad: 1;
+
+  --f-titulo: "Young Serif", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --f-texto: "Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --f-ficha: "Courier Prime", "Courier New", ui-monospace, monospace;
+
+  --t-xs: 0.75rem;
+  --t-s: 0.875rem;
+  --t-m: 1rem;
+  --t-l: 1.25rem;
+  --t-xl: 1.75rem;
+  --t-xxl: 2.4rem;
+
+  --radio: 3px;
+  --barra-movil: 0px;
+  --tira: 0px;
+  --alto-tira: 84px;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --mesa: #18151e;
+    --hoja: #25202d;
+    --hoja-2: #1f1b26;
+    --manila: #46336b;
+    --manila-tinta: #ecdfff;
+    --tinta: #e8e6de;
+    --tinta-2: #b6afc2;
+    --tinta-3: #878094;
+    --acento: #c3a6f7;
+    --acento-suave: #372a52;
+    --sello: #ec8c7e;
+    --sello-suave: #4a2a25;
+    --bien: #7fc79a;
+    --regla: #3b3447;
+    --regla-roja: #6b3b35;
+    --sombra: 0 0 0;
+    --grano-opacidad: 0.35;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --mesa: #18151e;
+  --hoja: #25202d;
+  --hoja-2: #1f1b26;
+  --manila: #46336b;
+  --manila-tinta: #ecdfff;
+  --tinta: #e8e6de;
+  --tinta-2: #b6afc2;
+  --tinta-3: #878094;
+  --acento: #c3a6f7;
+  --acento-suave: #372a52;
+  --sello: #ec8c7e;
+  --sello-suave: #4a2a25;
+  --bien: #7fc79a;
+  --regla: #3b3447;
+  --regla-roja: #6b3b35;
+  --sombra: 0 0 0;
+  --grano-opacidad: 0.35;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  margin: 0;
+  background: var(--mesa);
+  color: var(--tinta);
+  font-family: var(--f-texto);
+  font-size: var(--t-m);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("../assets/papel.png");
+  background-size: 320px;
+  opacity: var(--grano-opacidad);
+  mix-blend-mode: multiply;
+  z-index: 0;
+}
+:root[data-theme="dark"] body::after, :root[data-theme="dark"] .vista-letra::before { mix-blend-mode: screen; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) body::after, :root:not([data-theme="light"]) .vista-letra::before { mix-blend-mode: screen; }
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto;
+  height: env(safe-area-inset-top, 0px);
+  z-index: 40;
+  background: var(--mesa);
+}
+
+#root { position: relative; z-index: 1; }
+
+h1, h2, h3 {
+  font-family: var(--f-titulo);
+  font-weight: 400;
+  line-height: 1.15;
+  text-wrap: balance;
+  margin: 0;
+}
+h1 { font-size: var(--t-xxl); letter-spacing: -0.01em; }
+h2 { font-size: var(--t-xl); }
+h3 { font-size: var(--t-l); }
+p { margin: 0; }
+a { color: var(--acento); }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
+img { max-width: 100%; }
+
+.ficha {
+  font-family: var(--f-ficha);
+  font-size: var(--t-xs);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tinta-2);
+}
+.num { font-variant-numeric: tabular-nums; }
+
+/* ---------- Estructura ---------- */
+.marco {
+  --ancho-panel: 0px;
+  --alto-barra: 64px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--ancho-panel);
+  grid-template-rows: var(--alto-barra) minmax(0, 1fr);
+  min-height: 100vh;
+  transition: grid-template-columns 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+/* El panel del reproductor se acopla a la derecha y estrecha el contenido, como en Spotify. */
+.marco.con-panel { --ancho-panel: 380px; }
+
+.escritorio {
+  grid-column: 1; grid-row: 2;
+  min-width: 0;
+  padding-block: 0 calc(8px + var(--tira));
+  padding-left: max(8px, env(safe-area-inset-left, 0px));
+  padding-right: max(8px, env(safe-area-inset-right, 0px));
+}
+
+/* Barra de arriba, como la de Spotify: logo, inicio y buscador al centro, añadir y perfil a la derecha. */
+.barra-superior {
+  grid-column: 1 / -1; grid-row: 1; position: sticky; top: 0; z-index: 25;
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 560px) minmax(0, 1fr); align-items: center; gap: 12px;
+  height: var(--alto-barra); padding: 0 max(16px, env(safe-area-inset-right, 0px)) 0 max(20px, env(safe-area-inset-left, 0px));
+  background: var(--mesa);
+}
+.barra-logo { justify-self: start; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; }
+.barra-logo img { display: block; width: 32px; height: 32px; border-radius: 8px; }
+.barra-centro { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.barra-inicio {
+  flex: none; display: grid; place-items: center; width: 48px; height: 48px;
+  border: 0; border-radius: 50%; background: var(--ui-relleno-2); color: var(--tinta-2); cursor: pointer;
+  transition: color var(--ui-rapida), transform var(--ui-rapida);
+}
+.barra-inicio:hover { color: var(--tinta); transform: scale(1.04); }
+.barra-inicio[aria-current="page"] { color: var(--tinta); }
+.barra-buscar { max-width: none; }
+.barra-derecha { justify-self: end; display: flex; align-items: center; gap: 16px; }
+.barra-anadir {
+  display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0;
+  border: 0; background: transparent; color: var(--tinta-2); font: 700 var(--t-s) var(--f-texto); cursor: pointer;
+  transition: color var(--ui-rapida), transform var(--ui-rapida);
+}
+.barra-anadir:hover { color: var(--tinta); transform: scale(1.04); }
+/* Tu foto de perfil: redonda, con un aro como en Spotify; la imagen llena el círculo. */
+.foto-perfil .ui-tres-puntos {
+  opacity: 1; width: 48px; height: 48px; padding: 8px; border-radius: 50%; background: var(--ui-relleno-2); color: var(--tinta-2);
+}
+.foto-perfil .ui-tres-puntos img, .foto-perfil .ui-tres-puntos svg { display: block; width: 32px; height: 32px; border-radius: 50%; }
+.foto-perfil .ui-tres-puntos img { object-fit: cover; }
+.foto-perfil .ui-tres-puntos:hover { transform: scale(1.04); }
+.foto-perfil .ui-opciones { margin: 0; }
+.cajon {
+  display: grid;
+  gap: 28px;
+  align-content: start;
+}
+
+@media (max-width: 820px) {
+  .marco { grid-template-columns: minmax(0, 1fr); --alto-barra: 60px; }
+  .escritorio { padding-block: 0 calc(24px + var(--tira) + env(safe-area-inset-bottom, 0px)); }
+  .barra-superior { grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; padding-inline: 10px; }
+  .barra-inicio { width: 40px; height: 40px; }
+  .barra-anadir .texto-boton { display: none; }
+  .barra-derecha { gap: 8px; }
+  .foto-perfil .ui-tres-puntos { width: 40px; height: 40px; padding: 6px; }
+  .foto-perfil .ui-tres-puntos img, .foto-perfil .ui-tres-puntos svg { width: 28px; height: 28px; }
+  h1 { font-size: 1.9rem; }
+}
+
+/* ---------- Cabeceras de sección ---------- */
+.acciones { display: flex; flex-wrap: wrap; gap: 8px; }
+.seccion { display: grid; gap: 14px; }
+.seccion > header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.seccion > header h2 { font-size: var(--t-l); }
+
+/* ---------- Controles ---------- */
+.boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 1px solid var(--regla);
+  border-radius: var(--radio);
+  background: var(--hoja);
+  color: var(--tinta);
+  cursor: pointer;
+  font-size: var(--t-s);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.boton:hover { border-color: var(--tinta-3); }
+.boton:disabled { opacity: 0.5; cursor: not-allowed; }
+.boton.tinta { background: var(--tinta); color: var(--hoja); border-color: var(--tinta); }
+.boton.tinta:hover { background: var(--acento); border-color: var(--acento); }
+.boton.plano { border-color: transparent; background: transparent; }
+.boton.plano:hover { background: color-mix(in srgb, var(--tinta) 7%, transparent); }
+.boton.icono { padding: 8px; min-width: 40px; }
+
+.campo { display: grid; gap: 6px; min-width: 0; }
+.campo > span { font-size: var(--t-s); color: var(--tinta-2); }
+.entrada {
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 12px;
+  border: 1px solid var(--regla);
+  border-radius: var(--radio);
+  background: var(--hoja);
+}
+.entrada:focus { outline: 2px solid var(--acento); outline-offset: -1px; border-color: transparent; }
+
+.buscador { position: relative; flex: 1 1 240px; max-width: 420px; }
+.buscador svg { position: absolute; left: 11px; top: 50%; translate: 0 -50%; color: var(--tinta-3); pointer-events: none; }
+.buscador .entrada { padding-left: 36px; }
+
+/* ---------- Hojas (superficies) ---------- */
+
+.vacio {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  padding: 26px 22px;
+  background:
+    repeating-linear-gradient(var(--hoja) 0 27px, var(--regla) 27px 28px);
+  border-radius: 2px;
+  box-shadow: 0 8px 18px -14px rgb(var(--sombra) / 0.45);
+  color: var(--tinta-2);
+}
+.vacio strong { font-family: var(--f-titulo); font-weight: 400; font-size: var(--t-l); color: var(--tinta); }
+
+/* ---------- Listas tipo libreta (música) ---------- */
+.pista {
+  display: grid;
+  grid-template-columns: 34px 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 8px 8px 14px;
+  border-bottom: 1px solid var(--regla);
+  position: relative;
+}
+.pista:last-child { border-bottom: 0; }
+.pista { transition: background-color 160ms; }
+.pista:hover { background: color-mix(in srgb, var(--tinta) 4%, transparent); }
+.pista .n { font-family: var(--f-ficha); color: var(--tinta-3); text-align: right; font-size: var(--t-s); }
+.pista .mini { width: 40px; height: 40px; border-radius: 2px; object-fit: cover; background: var(--manila); display: grid; place-items: center; color: var(--manila-tinta); }
+.pista .datos { min-width: 0; }
+.pista .datos b { display: block; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pista .datos small { color: var(--tinta-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+.pista.sonando .datos b { color: var(--acento); }
+@media (max-width: 480px) {
+  .pista { grid-template-columns: 40px minmax(0, 1fr) auto; padding: 8px 6px 8px 10px; }
+  .pista .n { display: none; }
+}
+
+/* ---------- Barra del reproductor (como la de Spotify) ---------- */
+.tira {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+  height: var(--alto-tira);
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1fr); align-items: center; gap: 16px;
+  padding: 0 max(16px, env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(16px, env(safe-area-inset-left, 0px));
+  background: var(--mesa); box-shadow: 0 -1px 0 var(--regla);
+  animation: ui-fundir var(--ui-suave);
+}
+.tira-tema { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.tira-tema .mini { width: 56px; height: 56px; border-radius: 6px; flex: none; }
+.tira-tema > div { display: grid; min-width: 0; }
+.tira-titulo { padding: 0; border: 0; background: transparent; color: var(--tinta); font: 600 var(--t-s) var(--f-texto); text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+.tira-titulo:enabled:hover { text-decoration: underline; }
+.tira-titulo:disabled { cursor: default; }
+.tira-tema small { color: var(--tinta-2); font-size: var(--t-xs); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tira-centro { display: grid; gap: 6px; justify-items: center; min-width: 0; }
+.tira-mandos { display: flex; align-items: center; gap: 14px; }
+.tira-boton {
+  position: relative; display: grid; place-items: center; width: 34px; height: 34px; flex: none;
+  border: 0; border-radius: 50%; background: transparent; color: var(--tinta-2); cursor: pointer;
+  transition: color var(--ui-rapida), transform var(--ui-rapida);
+}
+.tira-boton:hover:enabled { color: var(--tinta); transform: scale(1.06); }
+.tira-boton:disabled { opacity: 0.35; cursor: default; }
+.tira-boton.activo, .tira-boton[aria-pressed="true"] { color: var(--acento); }
+/* Un punto bajo el modo activo, como en Spotify. */
+.tira-boton.activo::after, .tira-boton[aria-pressed="true"]::after { content: ""; position: absolute; bottom: 1px; width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+.tira-boton.grande { width: 48px; height: 48px; }
+.tira-play {
+  display: grid; place-items: center; width: 36px; height: 36px; padding-left: 1px;
+  border: 0; border-radius: 50%; background: var(--tinta); color: var(--mesa); cursor: pointer;
+  transition: transform var(--ui-rapida);
+}
+.tira-play:hover { transform: scale(1.07); }
+.tira-progreso { display: flex; align-items: center; gap: 8px; width: 100%; max-width: 640px; color: var(--tinta-2); font-size: 0.72rem; }
+.tira-progreso .num { min-width: 36px; text-align: center; }
+.tira-derecha { display: flex; align-items: center; justify-content: flex-end; gap: 2px; min-width: 0; }
+.tira-volumen { display: flex; align-items: center; gap: 4px; }
+.volumen-rep { width: 96px; }
+
+/* Barras de rango finas, la parte recorrida en tinta y en acento al pasar el ratón. */
+.barra-rep {
+  --avance: 0%;
+  flex: 1; height: 14px; margin: 0; min-width: 0; appearance: none; background: transparent; cursor: pointer;
+}
+.barra-rep::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: linear-gradient(to right, var(--tinta) var(--avance), var(--regla) var(--avance)); }
+.barra-rep:hover::-webkit-slider-runnable-track { background: linear-gradient(to right, var(--acento) var(--avance), var(--regla) var(--avance)); }
+.barra-rep::-webkit-slider-thumb { appearance: none; width: 12px; height: 12px; margin-top: -4px; border-radius: 50%; background: var(--tinta); opacity: 0; transition: opacity var(--ui-rapida); }
+.barra-rep:hover::-webkit-slider-thumb, .barra-rep:focus-visible::-webkit-slider-thumb { opacity: 1; }
+.barra-rep::-moz-range-track { height: 4px; border-radius: 2px; background: var(--regla); }
+.barra-rep::-moz-range-progress { height: 4px; border-radius: 2px; background: var(--tinta); }
+.barra-rep:hover::-moz-range-progress { background: var(--acento); }
+.barra-rep::-moz-range-thumb { width: 12px; height: 12px; border: 0; border-radius: 50%; background: var(--tinta); }
+
+@media (max-width: 820px) {
+  :root { --alto-tira: 64px; }
+  .tira {
+    bottom: calc(var(--barra-movil) + env(safe-area-inset-bottom, 0px));
+    grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; padding: 0 8px; margin: 0 8px; border-radius: 10px;
+    background: var(--hoja); box-shadow: 0 6px 20px -10px rgb(var(--sombra) / 0.6);
+  }
+  .tira .solo-ancho { display: none; }
+  .tira-tema .mini { width: 44px; height: 44px; }
+  /* En móvil el progreso es una línea al pie de la barra. */
+  .tira-centro { display: contents; }
+  .tira-progreso { position: absolute; left: 10px; right: 10px; bottom: 2px; max-width: none; }
+  .tira-progreso .num { display: none; }
+  .tira-progreso .barra-rep { height: 4px; }
+  .tira-progreso .barra-rep::-webkit-slider-thumb { display: none; }
+  .tira-mandos { gap: 4px; }
+}
+
+/* ---------- Controles comunes: pastillas, chips, pestañas y menús ----------
+   Transiciones cortas: 150–250 ms. */
+:root {
+  --ui-relleno: color-mix(in srgb, var(--tinta) 7%, transparent);
+  --ui-relleno-2: color-mix(in srgb, var(--tinta) 13%, transparent);
+  --ui-rapida: 160ms cubic-bezier(0.2, 0, 0, 1);
+  --ui-suave: 240ms cubic-bezier(0.2, 0, 0, 1);
+}
+@keyframes ui-entrar { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes ui-fundir { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ui-menu { from { opacity: 0; transform: scale(0.96) translateY(-4px); } to { opacity: 1; transform: none; } }
+.ui-pildora {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 36px; padding: 0 16px; border: 0; border-radius: 18px;
+  background: var(--ui-relleno); color: var(--tinta);
+  font: 700 var(--t-s)/1 var(--f-texto); text-decoration: none; white-space: nowrap; cursor: pointer;
+  transition: background-color var(--ui-rapida), transform var(--ui-rapida);
+}
+.ui-pildora:hover { background: var(--ui-relleno-2); }
+.ui-pildora:active { transform: scale(0.97); }
+.ui-pildora.quieta { background: transparent; color: var(--tinta-3); font-weight: 400; padding: 0 4px; cursor: default; }
+.ui-pildora.quieta:active { transform: none; }
+.ui-boton-icono {
+  flex: none; display: grid; place-items: center; width: 36px; height: 36px;
+  border: 0; border-radius: 50%; background: transparent; color: var(--tinta); cursor: pointer;
+  transition: background-color var(--ui-rapida);
+}
+.ui-boton-icono:hover { background: var(--ui-relleno-2); }
+[data-plegado] { display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
+/* El botón ⋮ aparece al pasar el ratón por la fila (siempre en pantallas táctiles). */
+.ui-opciones { position: relative; margin-right: -8px; }
+.ui-tres-puntos {
+  display: grid; place-items: center; width: 36px; height: 36px;
+  border: 0; border-radius: 50%; background: transparent; color: var(--tinta); cursor: pointer;
+  opacity: 0; transition: opacity var(--ui-rapida), background-color var(--ui-rapida);
+}
+.ui-tres-puntos:hover { background: var(--ui-relleno-2); }
+.ui-tres-puntos:focus-visible, .ui-tres-puntos[aria-expanded="true"] { opacity: 1; }
+@media (hover: none) {
+  .ui-tres-puntos { opacity: 1; transform: none; }
+}
+a.ui-chip { display: inline-flex; align-items: center; text-decoration: none; }
+.ui-pestanas { display: flex; align-items: center; gap: 24px; overflow-x: auto; margin-bottom: -18px; }
+.ui-pestanas > button {
+  position: relative; border: 0; background: transparent; cursor: pointer;
+  color: var(--tinta-2); font: 700 var(--t-m) var(--f-texto); white-space: nowrap; padding: 12px 0;
+  transition: color var(--ui-rapida);
+}
+.ui-pestanas > button:hover, .ui-pestanas > button[aria-selected="true"] { color: var(--tinta); }
+.ui-pestanas > button[role="tab"]::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0;
+  height: 2px; border-radius: 1px; background: var(--tinta);
+  transform: scaleX(0); transition: transform var(--ui-suave);
+}
+.ui-pestanas > button[aria-selected="true"]::after { transform: scaleX(1); }
+.ui-chips { display: flex; flex-wrap: wrap; gap: 12px; }
+.ui-chip {
+  height: 32px; padding: 0 12px; border: 0; border-radius: 8px;
+  background: var(--ui-relleno); color: var(--tinta);
+  font: 700 var(--t-s) var(--f-texto); cursor: pointer;
+  transition: background-color var(--ui-rapida), color var(--ui-rapida);
+}
+.ui-chip:hover { background: var(--ui-relleno-2); }
+.ui-chip[aria-pressed="true"] { background: var(--tinta); color: var(--hoja); }
+
+/* Menús ⋮ de canciones, álbumes y playlists */
+.ui-menu {
+  position: absolute; top: calc(100% + 4px); left: 0; z-index: 20;
+  display: grid; min-width: 230px; padding: 8px 0; border-radius: 12px;
+  background: var(--hoja); box-shadow: 0 6px 28px rgb(var(--sombra) / 0.28);
+  transform-origin: top left; animation: ui-menu var(--ui-rapida);
+}
+.ui-menu > button, .ui-menu > a {
+  display: flex; align-items: center; gap: 16px;
+  border: 0; background: transparent; padding: 9px 16px; text-align: left; text-decoration: none;
+  color: var(--tinta); font-size: var(--t-s); cursor: pointer; white-space: nowrap;
+  transition: background-color var(--ui-rapida);
+}
+.ui-menu > button:hover, .ui-menu > a:hover, .ui-menu > button[aria-checked="true"] { background: var(--ui-relleno-2); }
+.ui-menu-derecha { left: auto; right: 0; min-width: 250px; transform-origin: top right; }
+
+/* Reproductor propio: superficie oscura en los dos temas */
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-menu { animation: none; }
+  .ui-pestanas > button::after { transition: none; }
+}
+
+/* ---------- Música (como Spotify) ---------- */
+.historial-musica { display: grid; gap: 22px; animation: ui-fundir var(--ui-suave); }
+
+/* Dos paneles redondeados, como Spotify: «Tu biblioteca» fija a la izquierda y el contenido a la derecha. */
+.cajon.cajon-musica { background: transparent; padding: 0; box-shadow: none; }
+.sp-musica { display: grid; grid-template-columns: minmax(240px, 300px) minmax(0, 1fr); gap: 8px; align-items: start; }
+.sp-biblioteca {
+  position: sticky; top: var(--alto-barra); height: calc(100vh - var(--alto-barra) - 8px - var(--tira));
+  display: grid; grid-template-rows: auto auto auto minmax(0, 1fr); gap: 8px;
+  border-radius: 10px; background: var(--hoja-2); overflow: hidden;
+}
+.sp-biblioteca > header { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 14px 12px 0 18px; }
+.sp-biblioteca h2 { font: 700 var(--t-m) var(--f-texto); }
+.sp-biblioteca > header .ui-tres-puntos { opacity: 1; width: 34px; height: 34px; background: var(--ui-relleno); color: var(--tinta); }
+.sp-biblioteca > header .ui-tres-puntos:hover { background: var(--ui-relleno-2); }
+.sp-biblioteca-filtros { padding: 4px 12px 0 16px; min-width: 0; }
+.sp-biblioteca-filtros .ui-chips { flex-wrap: nowrap; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.sp-biblioteca-orden { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 34px; padding: 0 14px 0 10px; font-size: var(--t-s); }
+.sp-biblioteca-filtros .ui-chip { padding-inline: 12px; }
+.sp-chip-quitar { padding: 0 !important; width: 32px; display: grid; place-items: center; }
+.sp-biblioteca-buscar { display: flex; align-items: center; gap: 6px; flex: 0 1 180px; min-width: 0; height: 32px; padding: 0 10px; border-radius: 6px; background: var(--ui-relleno-2); color: var(--tinta-2); }
+.sp-biblioteca-buscar input { width: 100%; min-width: 0; border: 0; outline: none; background: transparent; color: var(--tinta); font: inherit; font-size: var(--t-s); }
+.sp-biblioteca-cuerpo { display: grid; gap: 12px; align-content: start; padding: 2px 8px 12px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.sp-invitacion { display: grid; gap: 6px; justify-items: start; padding: 16px 18px 18px; border-radius: 10px; background: var(--ui-relleno); }
+.sp-invitacion b { font-weight: 700; }
+.sp-invitacion span { margin-bottom: 12px; color: var(--tinta-2); font-size: var(--t-s); }
+.sp-pildora {
+  height: 32px; padding: 0 16px; border: 0; border-radius: 16px; background: var(--tinta); color: var(--hoja);
+  font: 700 var(--t-s) var(--f-texto); cursor: pointer; transition: transform var(--ui-rapida);
+}
+.sp-pildora:hover { transform: scale(1.04); }
+.sp-entradas { list-style: none; margin: 0; padding: 0; display: grid; }
+.sp-entrada { display: flex; align-items: center; gap: 12px; padding: 7px 8px; border-radius: 6px; color: inherit; text-decoration: none; transition: background-color var(--ui-rapida); }
+.sp-entrada:hover, .sp-entrada:focus-visible { background: var(--ui-relleno); }
+.sp-entrada .caratula { flex: none; border-radius: 4px; box-shadow: none; }
+.sp-entrada .caratula.redonda { border-radius: 50%; }
+.sp-entrada > span { display: grid; flex: 1; min-width: 0; }
+.sp-entrada b { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-entrada small { color: var(--tinta-2); font-size: var(--t-xs); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-entrada.suena b, .sp-entrada > svg { color: var(--acento); }
+.sp-entrada > svg { flex: none; }
+.sp-nada { padding: 0 8px; }
+.sp-contenido { min-width: 0; min-height: calc(100vh - var(--alto-barra) - 8px - var(--tira)); border-radius: 10px; background: var(--hoja-2); overflow: hidden; }
+.sp-contenido > .disco-pagina { margin: 0; }
+.sp-contenido .disco-cabecera { border-radius: 0; }
+
+/* Inicio: buscador en píldora, filtros, accesos rápidos y filas horizontales. */
+.sp-inicio {
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; align-content: start; padding: 18px clamp(16px, 2.4vw, 28px) 36px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--acento) 16%, var(--hoja-2)), var(--hoja-2) 340px);
+  animation: ui-fundir var(--ui-suave) both;
+}
+.sp-buscar {
+  display: flex; align-items: center; gap: 10px; flex: 1 1 auto; min-width: 0; max-width: 480px; height: 48px; padding: 0 8px 0 16px;
+  border-radius: 24px; background: var(--ui-relleno-2); color: var(--tinta-2); transition: background-color var(--ui-rapida);
+}
+.sp-buscar:hover { background: color-mix(in srgb, var(--tinta) 17%, transparent); }
+.sp-buscar:focus-within { outline: 2px solid var(--tinta); outline-offset: -2px; }
+.sp-buscar input { flex: 1; width: 100%; min-width: 0; border: 0; outline: none; background: transparent; color: var(--tinta); font: inherit; }
+.sp-buscar input::placeholder { color: var(--tinta-2); }
+/* En Música las píldoras son redondas, como en Spotify. */
+.sp-chips .ui-chip, .sp-biblioteca .ui-chip { border-radius: 16px; }
+.sp-vacio { display: grid; justify-items: center; gap: 12px; padding: 56px 16px; text-align: center; }
+.sp-vacio h2 { font: 800 1.6rem/1.2 var(--f-texto); }
+.sp-vacio p { max-width: 46ch; color: var(--tinta-2); }
+.sp-vacio .sp-pildora { height: 44px; padding: 0 26px; font-size: var(--t-m); border-radius: 22px; margin-top: 8px; }
+.sp-chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+.sp-chips::-webkit-scrollbar { display: none; }
+.sp-chips .ui-chip { flex: none; }
+.sp-chips .sp-aleatorio { margin-left: auto; width: 32px; height: 32px; flex: none; }
+.solo-movil { display: none !important; }
+.sp-rapidos { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 8px; }
+.sp-rapido { position: relative; display: flex; align-items: center; border-radius: 6px; background: var(--ui-relleno); overflow: hidden; transition: background-color var(--ui-rapida); animation: ui-entrar var(--ui-suave) both; }
+.sp-rapido:hover { background: var(--ui-relleno-2); }
+.sp-rapido > a { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; padding-right: 54px; color: inherit; text-decoration: none; }
+.sp-rapido .caratula { flex: none; border-radius: 0; box-shadow: 0 6px 14px -6px rgb(0 0 0 / 0.6); }
+.sp-rapido .caratula.redonda { border-radius: 50%; margin: 0 2px 0 6px; width: 46px !important; height: 46px !important; }
+.sp-rapido b { font: 700 var(--t-s)/1.25 var(--f-texto); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.sp-rapido.suena b { color: var(--acento); }
+.sp-rapido-play {
+  position: absolute; right: 8px; display: grid; place-items: center; width: 36px; height: 36px; padding-left: 2px;
+  border: 0; border-radius: 50%; background: var(--acento); color: var(--mesa); cursor: pointer;
+  box-shadow: 0 6px 12px -4px rgb(0 0 0 / 0.55); opacity: 0; transition: opacity var(--ui-rapida), transform var(--ui-rapida);
+}
+.sp-rapido-play:hover { transform: scale(1.06); }
+.sp-rapido:hover .sp-rapido-play, .sp-rapido-play:focus-visible, .sp-rapido.suena .sp-rapido-play { opacity: 1; }
+@media (hover: none) { .sp-rapido-play { opacity: 1; } }
+.sp-fila { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; min-width: 0; }
+.sp-fila > header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.sp-fila h2 { min-width: 0; font: 800 1.5rem/1.2 var(--f-texto); letter-spacing: -0.01em; }
+.sp-fila h2 a { color: inherit; text-decoration: none; }
+.sp-fila h2 a:hover { text-decoration: underline; }
+.sp-mostrar { flex: none; padding: 0; border: 0; background: transparent; color: var(--tinta-2); font: 700 var(--t-s) var(--f-texto); text-decoration: none; cursor: pointer; }
+.sp-mostrar:hover { color: var(--tinta); text-decoration: underline; }
+.sp-carrusel-marco { position: relative; margin: 0 -12px; }
+.sp-carrusel { display: grid; grid-auto-flow: column; grid-auto-columns: clamp(150px, 14vw, 188px); overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+.sp-carrusel::-webkit-scrollbar { display: none; }
+.sp-carrusel > .disco { scroll-snap-align: start; }
+.sp-flecha {
+  position: absolute; top: 32%; display: grid; place-items: center; width: 34px; height: 34px;
+  border: 0; border-radius: 50%; background: var(--hoja); color: var(--tinta); cursor: pointer;
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.45); opacity: 0; transition: opacity var(--ui-rapida);
+}
+.sp-flecha.izquierda { left: 4px; }
+.sp-flecha.derecha { right: 4px; }
+.sp-carrusel-marco:hover .sp-flecha, .sp-flecha:focus-visible { opacity: 1; }
+@media (hover: none) { .sp-flecha { display: none; } }
+.sp-dos-columnas { grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr)); column-gap: 16px; }
+/* Búsqueda: el resultado principal en grande junto a las canciones. */
+.sp-busqueda-arriba { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 24px; align-items: start; }
+.sp-principal-resultado { position: relative; border-radius: 10px; background: var(--ui-relleno); transition: background-color var(--ui-rapida); }
+.sp-principal-resultado:hover { background: var(--ui-relleno-2); }
+.sp-principal-resultado > a { display: grid; justify-items: start; gap: 14px; padding: 20px; color: inherit; text-decoration: none; }
+.sp-principal-resultado > a > b { font: 800 2rem/1.15 var(--f-texto); letter-spacing: -0.02em; overflow-wrap: anywhere; }
+.sp-principal-resultado > a > span { color: var(--tinta-2); font-size: var(--t-s); }
+.sp-principal-resultado .caratula { box-shadow: 0 8px 24px rgb(0 0 0 / 0.5); }
+.sp-tipo { display: inline-block; margin-right: 6px; padding: 3px 10px; border-radius: 12px; background: var(--ui-relleno-2); color: var(--tinta); font: 700 var(--t-xs) var(--f-texto); }
+.sp-principal-resultado .disco-play { right: 20px; bottom: 20px; width: 48px; height: 48px; }
+.sp-principal-resultado:hover .disco-play { opacity: 1; transform: none; }
+.sp-biblioteca.como-pagina { position: static; height: auto; background: transparent; overflow: visible; }
+.sp-biblioteca.como-pagina > header, .sp-biblioteca.como-pagina .sp-biblioteca-filtros { padding-inline: 0; }
+.sp-biblioteca.como-pagina .sp-biblioteca-cuerpo { padding-inline: 0; overflow: visible; }
+@media (max-width: 1000px) { .sp-busqueda-arriba { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 820px) {
+  .sp-musica { grid-template-columns: minmax(0, 1fr); }
+  .sp-musica > .sp-biblioteca:not(.como-pagina) { display: none; }
+  .solo-movil { display: revert !important; }
+  .sp-contenido { min-height: 0; }
+  .sp-fila h2 { font-size: 1.2rem; }
+  /* El título ya lleva a la lista entera: «Mostrar todo» sobra y no cabe. */
+  .sp-fila > header:has(h2 a) .sp-mostrar { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .sp-inicio, .sp-rapido { animation: none; } }
+
+/* Rejilla de álbumes: tarjetas que se iluminan y muestran el play. */
+.discos { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr)); gap: 8px; }
+.disco { display: grid; gap: 8px; min-width: 0; padding: 12px; border-radius: 10px; transition: background-color var(--ui-rapida); animation: ui-entrar var(--ui-suave) both; }
+.disco:hover { background: var(--ui-relleno); }
+.disco-tapa { position: relative; }
+.disco-abrir { display: grid; gap: 4px; width: 100%; padding: 0; border: 0; background: transparent; color: inherit; text-align: left; text-decoration: none; cursor: pointer; }
+.disco-abrir b, .disco-crear b { font: 700 var(--t-s)/1.3 var(--f-texto); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.disco-detalle, .disco-crear small { margin-top: -4px; color: var(--tinta-2); font-size: var(--t-xs); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.disco.redondo { text-align: center; }
+.disco.redondo .disco-abrir { text-align: center; }
+.caratula.redonda { border-radius: 50%; }
+/* Mosaico de una playlist: cuatro carátulas en 2 × 2. */
+.caratula.mosaico { display: grid; grid-template-columns: 1fr 1fr; overflow: hidden; }
+.caratula.mosaico img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.disco-crear { align-content: start; border: 0; background: transparent; color: var(--tinta); text-align: left; font: inherit; cursor: pointer; }
+.disco-crear .caratula { box-shadow: none; background: var(--ui-relleno-2); color: var(--tinta-2); transition: color var(--ui-rapida); }
+.disco-crear:hover .caratula { color: var(--acento); }
+/* Artistas y álbumes enlazados bajo los títulos: subrayados al pasar, como en Spotify. */
+.enlace-musica { color: inherit; text-decoration: none; }
+.enlace-musica:hover { color: var(--tinta); text-decoration: underline; }
+.disco-cabecera .enlace-musica:hover { color: #fff; }
+.caratula { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; background: var(--ui-relleno); box-shadow: 0 8px 24px -8px rgb(0 0 0 / 0.5); }
+.sin-caratula { display: grid; place-items: center; color: var(--tinta-3); }
+.disco-play {
+  position: absolute; right: 8px; bottom: 8px;
+  display: grid; place-items: center; width: 46px; height: 46px; padding-left: 2px;
+  border: 0; border-radius: 50%; background: var(--acento); color: var(--mesa); cursor: pointer;
+  box-shadow: 0 8px 16px -6px rgb(0 0 0 / 0.6);
+  opacity: 0; transform: translateY(8px); transition: opacity var(--ui-rapida), transform var(--ui-rapida);
+}
+.disco-play:hover { transform: scale(1.06); }
+.disco:hover .disco-play, .disco-play:focus-visible { opacity: 1; transform: none; }
+@media (hover: none) { .disco-play { opacity: 1; transform: none; } }
+
+/* Página de álbum: degradado del color de la carátula, título grande y botón redondo. */
+.disco-pagina { --fondo-album: var(--manila); display: grid; animation: ui-fundir var(--ui-suave) both; margin: calc(-1 * clamp(18px, 3vw, 36px)); }
+.disco-cabecera {
+  display: grid; gap: 18px; padding: clamp(18px, 3vw, 36px) clamp(18px, 3vw, 36px) 26px;
+  background: linear-gradient(180deg, var(--fondo-album), color-mix(in srgb, var(--fondo-album) 55%, var(--hoja-2)));
+  border-radius: 2px 10px 0 0; color: #fff;
+}
+.disco-cabecera-fila { display: flex; flex-wrap: wrap; align-items: end; gap: 24px; }
+.disco-cabecera-fila > .caratula { width: min(232px, 60vw) !important; height: auto !important; flex: none; box-shadow: 0 8px 40px rgb(0 0 0 / 0.5); }
+.disco-cabecera-fila > div { display: grid; gap: 8px; min-width: 0; flex: 1 1 280px; }
+.disco-tipo { font: 700 var(--t-s) var(--f-texto); }
+.disco-cabecera h1 { font: 900 clamp(2.2rem, 6vw, 5.5rem)/1 var(--f-texto); letter-spacing: -0.04em; overflow-wrap: anywhere; color: #fff; }
+.disco-cabecera p { color: rgb(255 255 255 / 0.85); font-size: var(--t-s); }
+.disco-cabecera p b { color: #fff; }
+.disco-cabecera .disco-descripcion { color: rgb(255 255 255 / 0.72); max-width: 70ch; }
+.disco-editar { padding: 0; border: 0; background: transparent; color: inherit; font: inherit; letter-spacing: inherit; text-align: left; cursor: pointer; }
+.disco-acciones {
+  display: flex; align-items: center; gap: 22px; padding: 22px clamp(18px, 3vw, 36px);
+  /* Termina en el tono con que empieza el cuerpo: el degradado sigue sin corte. */
+  background: linear-gradient(180deg, color-mix(in srgb, var(--fondo-album) 40%, var(--hoja-2)), color-mix(in srgb, var(--fondo-album) 22%, var(--hoja-2)));
+}
+.disco-play-grande {
+  display: grid; place-items: center; width: 56px; height: 56px; padding-left: 3px;
+  border: 0; border-radius: 50%; background: var(--acento); color: var(--mesa); cursor: pointer;
+  box-shadow: 0 8px 16px -6px rgb(0 0 0 / 0.55); transition: transform var(--ui-rapida);
+}
+.disco-play-grande:hover:enabled { transform: scale(1.05); }
+.disco-play-grande:disabled { opacity: 0.45; cursor: default; }
+.disco-acciones .ui-tres-puntos { opacity: 1; width: 44px; height: 44px; color: var(--tinta-2); }
+.disco-acciones .ui-tres-puntos:hover { color: var(--tinta); }
+.disco-cuerpo {
+  display: grid; gap: 36px; align-content: start; padding: 8px clamp(18px, 3vw, 36px) clamp(18px, 3vw, 36px);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--fondo-album) 22%, var(--hoja-2)), var(--hoja-2) 260px);
+  border-radius: 0 0 10px 10px;
+}
+.disco-cuerpo .seccion > header h2 { font: 800 1.5rem/1.2 var(--f-texto); letter-spacing: -0.01em; }
+.disco-cuerpo .ver-mas { justify-self: start; font-weight: 700; color: var(--tinta-2); }
+.disco-cuerpo .buscar-mas { justify-self: start; }
+.buscar-lista .buscador { max-width: 420px; }
+
+/* Tabla de pistas: el número se vuelve play al pasar el ratón; la que suena, en acento y con barras. */
+.temas { display: grid; }
+.tema {
+  display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; align-items: center; gap: 14px;
+  min-height: 56px; padding: 0 12px; border-radius: 6px; transition: background-color var(--ui-rapida);
+}
+.tema.con-mini { grid-template-columns: 36px 40px minmax(0, 1fr) auto; }
+.tema.con-columna { grid-template-columns: 36px minmax(0, 1.4fr) minmax(0, 1fr) auto; }
+.tema.con-mini.con-columna { grid-template-columns: 36px 40px minmax(0, 1.4fr) minmax(0, 1fr) auto; }
+.tema:not(.tema-cabecera):hover, .tema:focus-within { background: var(--ui-relleno); }
+.tema .mini { width: 40px; height: 40px; border-radius: 4px; }
+.tema-n { position: relative; display: grid; place-items: center; color: var(--tinta-2); font-size: var(--t-s); }
+.tema-play { position: absolute; inset: 0; display: grid; place-items: center; border: 0; background: transparent; color: var(--tinta); cursor: pointer; opacity: 0; }
+.tema:hover .tema-play, .tema-play:focus-visible { opacity: 1; }
+.tema:hover .tema-n > :not(.tema-play) { opacity: 0; }
+.tema-titulo { display: grid; min-width: 0; }
+.tema-titulo b { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tema-titulo small { color: var(--tinta-2); font-size: var(--t-s); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tema.sonando .tema-titulo b { color: var(--acento); }
+.tema-columna { color: var(--tinta-2); font-size: var(--t-s); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tema-fin { display: flex; align-items: center; justify-content: flex-end; gap: 6px; color: var(--tinta-2); font-size: var(--t-s); }
+.tema-fin .ui-tres-puntos { width: 32px; height: 32px; }
+.tema:hover .ui-tres-puntos, .tema .ui-tres-puntos[aria-expanded="true"] { opacity: 1; }
+.tema-accion { display: grid; place-items: center; width: 30px; height: 30px; border: 0; border-radius: 50%; background: transparent; color: var(--tinta-2); cursor: pointer; }
+.tema-accion:hover { color: var(--tinta); background: var(--ui-relleno-2); }
+/* En una playlist, la fecha en que se agregó; con poco ancho se oculta. */
+.tema.con-mini.con-columna.con-fecha { grid-template-columns: 36px 40px minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 0.6fr) auto; }
+.tema[draggable="true"] { cursor: grab; }
+.tema.arrastrada { opacity: 0.45; }
+.tema.destino { background: var(--ui-relleno-2); }
+@media (max-width: 1100px) {
+  .tema.con-mini.con-columna.con-fecha { grid-template-columns: 36px 40px minmax(0, 1.4fr) minmax(0, 1fr) auto; }
+  .tema-fecha { display: none; }
+}
+.tema-fin .ui-pildora { height: 32px; padding: 0 14px; }
+.tema-cabecera { min-height: 36px; margin-bottom: 8px; color: var(--tinta-2); font-size: var(--t-s); box-shadow: 0 1px 0 var(--regla); border-radius: 0; }
+.tema-cabecera .tema-fin { padding-right: 38px; }
+@media (max-width: 560px) {
+  .tema.con-columna, .tema.con-mini.con-columna { grid-template-columns: 36px 40px minmax(0, 1fr) auto; }
+  .tema.con-columna:not(.con-mini) { grid-template-columns: 36px minmax(0, 1fr) auto; }
+  .tema-columna { display: none; }
+  .tema-n { display: none; }
+  .tema, .tema.con-mini { grid-template-columns: 40px minmax(0, 1fr) auto; padding: 0 6px; }
+  .tema:not(.con-mini) { grid-template-columns: minmax(0, 1fr) auto; }
+}
+/* Las barras animadas de lo que suena. */
+.barras { display: inline-flex; align-items: flex-end; gap: 2px; height: 14px; }
+.barras i { width: 3px; height: 100%; border-radius: 1px; background: var(--acento); transform-origin: bottom; animation: barras 0.9s ease-in-out infinite; }
+.barras i:nth-child(2) { animation-delay: -0.3s; }
+.barras i:nth-child(3) { animation-delay: -0.6s; }
+@keyframes barras { 0%, 100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
+
+/* Panel acoplado a la derecha: a continuación, ecualizador e historial. */
+.panel-rep {
+  grid-column: 2; grid-row: 2; position: sticky; top: var(--alto-barra); align-self: start;
+  height: calc(100vh - var(--alto-barra) - 8px - var(--tira)); margin: 0 8px 0 0;
+  display: grid; grid-template-rows: auto minmax(0, 1fr);
+  border-radius: 10px; background: var(--hoja-2); overflow: hidden;
+  animation: ui-fundir var(--ui-suave);
+}
+.panel-rep > header { display: flex; align-items: center; gap: 4px; padding: 8px 8px 0 16px; }
+.panel-rep > header .ui-pestanas { flex: 1; gap: 16px; margin: 0; }
+.panel-rep > header .ui-pestanas > button { display: inline-flex; align-items: center; gap: 6px; font-size: var(--t-s); }
+.panel-cuerpo { overflow-y: auto; padding: 14px 12px 24px; overscroll-behavior: contain; }
+.panel-secciones { display: grid; gap: 20px; }
+.panel-secciones section { display: grid; gap: 6px; }
+.panel-secciones header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.panel-secciones h3 { font: 700 var(--t-m) var(--f-texto); padding-left: 8px; }
+.panel-rep .tema { gap: 10px; padding: 0 6px; }
+.panel-rep .tema.con-mini { grid-template-columns: 28px 40px minmax(0, 1fr) auto; }
+.panel-rep .tema.con-mini.con-columna { grid-template-columns: 28px 40px minmax(0, 1fr) auto; }
+.panel-rep .tema-columna { display: none; }
+.panel-rep .historial-musica > .acciones .boton { font-size: var(--t-s); }
+@media (max-width: 820px) {
+  .marco.con-panel { --ancho-panel: 0px; }
+  .panel-rep {
+    position: fixed; z-index: 29; left: 8px; right: 8px; margin: 0; height: auto; max-height: min(70vh, calc(100vh - var(--barra-movil) - var(--tira) - 24px));
+    bottom: calc(var(--barra-movil) + var(--tira) + 8px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 18px 50px -18px rgb(var(--sombra) / 0.75);
+  }
+  .panel-rep > header .ui-pestanas > button svg { display: none; }
+}
+
+/* Ecualizador */
+.panel-eq { display: grid; gap: 16px; padding: 0 4px; }
+.interruptor { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; font-weight: 700; }
+.interruptor input { width: 40px; height: 22px; appearance: none; border-radius: 11px; background: var(--regla); position: relative; cursor: pointer; transition: background-color var(--ui-rapida); }
+.interruptor input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--hoja); transition: transform var(--ui-rapida); }
+.interruptor input:checked { background: var(--acento); }
+.interruptor input:checked::after { transform: translateX(18px); }
+.eq-bandas { display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 4px; padding: 12px 6px; border-radius: 12px; background: var(--ui-relleno); transition: opacity var(--ui-rapida); }
+.eq-bandas.apagado { opacity: 0.45; }
+.eq-banda { display: grid; justify-items: center; gap: 6px; min-width: 0; }
+.eq-banda span { font: 700 0.7rem var(--f-texto); color: var(--tinta-2); }
+.eq-banda small { font-size: 0.68rem; color: var(--tinta-3); }
+.eq-banda.preamp { margin-right: 10px; }
+.eq-banda input { writing-mode: vertical-lr; direction: rtl; width: 22px; height: 150px; margin: 0; accent-color: var(--acento); cursor: pointer; }
+.eq-banda input:disabled { cursor: default; }
+/* El marco, del color de la mesa, tapa la página de detrás hasta el borde; dentro va la hoja de color. */
+.vista-letra {
+  --fondo-letra: var(--manila);
+  position: fixed; z-index: 25; top: 0; bottom: var(--tira);
+  left: var(--ancho-barra); right: var(--ancho-panel);
+  display: grid; padding: 8px 8px 0; background: var(--mesa);
+}
+/* El mismo grano de papel que el fondo (body::after), fijo al viewport para que no se note la costura. */
+.vista-letra::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: url("../assets/papel.png") 0 0 / 320px fixed;
+  opacity: var(--grano-opacidad); mix-blend-mode: multiply;
+}
+.letra-hoja {
+  position: relative;
+  display: grid; grid-template-rows: auto minmax(0, 1fr); min-height: 0;
+  border-radius: 10px; background: var(--fondo-letra); color: #fff;
+  animation: ui-fundir var(--ui-suave);
+  transition: background-color 600ms ease;
+}
+.vista-letra header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 24px 4px; }
+.vista-letra header > div { display: grid; min-width: 0; }
+.vista-letra header b { font: 700 var(--t-m) var(--f-texto); }
+.vista-letra header small { color: rgb(255 255 255 / 0.75); font-size: var(--t-xs); }
+.letra-cerrar { display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 50%; background: rgb(0 0 0 / 0.2); color: #fff; cursor: pointer; }
+.letra-cerrar:hover { background: rgb(0 0 0 / 0.35); }
+.letra-cuerpo { overflow-y: auto; padding: 16px clamp(20px, 6vw, 80px) 40vh; scrollbar-width: none; }
+.letra-cuerpo::-webkit-scrollbar { display: none; }
+/* Con la letra abierta, la página de detrás no se desplaza: una sola barra, la de la letra. */
+html:has(.vista-letra) { overflow: hidden; }
+.letra-nota { display: block; margin-bottom: 18px; color: rgb(255 255 255 / 0.75); font: 600 var(--t-s) var(--f-texto); }
+.letra-lineas { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; max-width: 820px; }
+.letra-lineas button {
+  padding: 4px 0; border: 0; background: transparent; text-align: left; cursor: pointer;
+  font: 800 clamp(1.5rem, 2.6vw, 2.25rem)/1.3 var(--f-texto); letter-spacing: -0.01em;
+  color: rgb(0 0 0 / 0.55); transition: color 300ms ease;
+}
+.letra-lineas button:hover { color: rgb(255 255 255 / 0.9); }
+.letra-lineas .pasada button { color: rgb(255 255 255 / 0.65); }
+.letra-lineas .activa button { color: #fff; }
+.letra-lineas.quieta button, .letra-lineas button:disabled { color: rgb(255 255 255 / 0.85); cursor: default; }
+.letra-plana { white-space: pre-line; font: 800 clamp(1.3rem, 2.2vw, 1.9rem)/1.45 var(--f-texto); max-width: 820px; }
+.letra-aviso { display: grid; gap: 14px; justify-items: start; font: 700 1.4rem var(--f-texto); }
+.letra-fuente { display: block; margin-top: 40px; color: rgb(255 255 255 / 0.7); font-size: var(--t-xs); }
+@media (max-width: 820px) {
+  .vista-letra { left: 0; right: 0; padding: 0; z-index: 28; bottom: calc(var(--barra-movil) + var(--tira) + env(safe-area-inset-bottom, 0px)); }
+  .letra-hoja { border-radius: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .barras i { animation: none; } .disco, .disco-pagina { animation: none; } }
+
+/* Ventanas (<dialog>): playlists y confirmaciones. */
+.dialogo {
+  padding: 0; border: 0; border-radius: 14px; max-height: min(80vh, 640px);
+  background: var(--hoja); color: var(--tinta);
+  box-shadow: 0 24px 70px -20px rgb(var(--sombra) / 0.8);
+}
+.dialogo[open] { animation: ui-menu var(--ui-rapida); }
+.dialogo::backdrop { background: rgb(10 6 20 / 0.6); }
+.dialogo-cuerpo { display: grid; gap: 14px; padding: 18px 20px 20px; }
+.dialogo-cuerpo > header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.dialogo-cuerpo > header h2 { font: 700 var(--t-l) var(--f-texto); }
+.dialogo-cuerpo .acciones { display: flex; justify-content: flex-end; gap: 8px; }
+.dialogo-que { margin-top: -8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.selector-listas { list-style: none; margin: 0 -10px; padding: 0; display: grid; max-height: 50vh; overflow-y: auto; }
+.selector-listas button {
+  display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px 10px;
+  border: 0; border-radius: 8px; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer;
+  transition: background-color var(--ui-rapida);
+}
+.selector-listas button:hover, .selector-listas button:focus-visible { background: var(--ui-relleno); }
+.selector-listas .caratula { width: 48px; height: 48px; flex: none; border-radius: 4px; box-shadow: none; }
+.selector-listas button > span:not(.caratula) { display: grid; min-width: 0; flex: 1; }
+.selector-listas b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.selector-listas small { color: var(--tinta-2); font-size: var(--t-xs); }
+.selector-ya { color: var(--acento); flex: none; }
+.formulario-lista { display: grid; gap: 14px; }
+.formulario-lista label { display: grid; gap: 6px; }
+.formulario-lista textarea { resize: vertical; font: inherit; }
+
+/* Ficha de un juego: el objeto grande sobre el color de su plástico. */
+.boton.grande { padding: 12px 22px; font-size: var(--t-m); }
+
+/* ---------- Varios ---------- */
+.texto-2 { color: var(--tinta-2); }
+.texto-3 { color: var(--tinta-3); font-size: var(--t-s); }
+.aviso {
+  padding: 12px 14px;
+  background: var(--acento-suave);
+  color: var(--tinta);
+  border-radius: 2px;
+  font-size: var(--t-s);
+  display: flex; gap: 10px; align-items: flex-start;
+}
+.aviso.error { background: var(--sello-suave); }
+.aviso svg { flex: none; margin-top: 2px; }
+.progreso { height: 6px; background: var(--regla); border-radius: 3px; overflow: hidden; }
+.progreso i { display: block; height: 100%; background: var(--acento); transition: width 0.3s; }
+.toast-accion { margin-left: 14px; padding: 4px 10px; border: 0; border-radius: 14px; background: transparent; color: var(--acento); font: 700 var(--t-s) var(--f-texto); cursor: pointer; }
+.toast-accion:hover { background: color-mix(in srgb, var(--hoja) 14%, transparent); }
+.toast {
+  position: fixed;
+  left: 50%;
+  translate: -50% 0;
+  bottom: calc(24px + var(--tira) + env(safe-area-inset-bottom, 0px));
+  z-index: 60;
+  background: var(--tinta);
+  color: var(--hoja);
+  padding: 10px 16px;
+  border-radius: 3px;
+  font-size: var(--t-s);
+  box-shadow: 0 10px 24px -12px rgb(0 0 0 / 0.6);
+  max-width: calc(100vw - 32px);
+}
+@media (max-width: 820px) { .toast { bottom: calc(var(--barra-movil) + 16px + var(--tira) + env(safe-area-inset-bottom, 0px)); } }
+.zona-soltar { outline: 2px dashed var(--acento); outline-offset: -10px; }
+.oculto-visual { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
