@@ -1,5 +1,7 @@
 # Openfy
 
+**Una alternativa open-source a Spotify.**
+
 Un reproductor de música local con la forma de Spotify: tu biblioteca a la
 izquierda, álbumes, artistas y playlists, la fila de reproducción, letras
 sincronizadas y ecualizador. Tu música no sale de tu dispositivo: no hay

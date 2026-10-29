@@ -2,7 +2,7 @@
   "name": "openfy",
   "private": true,
   "version": "0.1.0",
-  "description": "Un reproductor de música local, inspirado en Spotify: tu biblioteca se queda en tu dispositivo.",
+  "description": "Una alternativa open-source a Spotify",
   "license": "MIT",
   "type": "module",
   "scripts": {
